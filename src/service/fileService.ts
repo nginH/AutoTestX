@@ -1,5 +1,7 @@
 import fs from "fs";
 import path from "path";
+import { _logger } from "../utils/log/winston";
+import CircularJSON from "circular-json";
 
 const DefaultIgnoreFiles = [".git", "node_modules", ".vscode", ".idea", "dist", "lib", "build", "coverage", "test", "tests", "*.log", "*.logs", "*.md"];
 
@@ -74,10 +76,11 @@ export class FileService {
         });
     }
 
-    public async writeFile(filePath: string, content: any): Promise<void> {
+    public async writeFile(filePath: string, content: any, basePath?: string): Promise<void> {
+
         if (filePath === "") {
             const defaultFolderPath = path.join(process.cwd(), "llmOut");
-            const defaultFilePath = path.join(defaultFolderPath, "output.json");
+            const defaultFilePath = path.join(defaultFolderPath, "output.xml");
 
             if (!fs.existsSync(defaultFolderPath)) {
                 await this.createFolder(defaultFolderPath);
@@ -93,9 +96,10 @@ export class FileService {
             }
         }
         return new Promise((resolve, reject) => {
-            const data = content ? JSON.stringify(content) : "";
+            const data = typeof content === 'string' ? content : CircularJSON.stringify(content);
             fs.writeFile(filePath, data, (err) => {
                 if (err) {
+                    console.error("Error writing to file:", err);
                     return reject(err);
                 }
                 resolve();

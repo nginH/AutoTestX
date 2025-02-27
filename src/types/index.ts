@@ -8,7 +8,7 @@ export interface _AIResponse {
 }
 
 export interface _FileToAnalyze {
-    fileToAnalyze: {
+    topFilesToAnalyze: {
         "path": string;
         "reason": string;
     }[];
@@ -21,10 +21,27 @@ export interface _CreatReadFile {
 
 
 interface create {
+    path: string | null;
+    content: string | null;
+}
+interface needToRead {
+    path: string | null;
+    reason: string | null;
+}
+export interface XMLTestFile {
     path: string;
     content: string;
 }
-interface needToRead {
+
+export interface XMLDependency {
     path: string;
     reason: string;
+}
+
+
+export interface CriticalFile {
+    path: string;
+    rationale: string;
+    category: 'API Definition' | 'Controller' | 'Auth' | 'Service' | 'Validation';
+    priority: number;
 }

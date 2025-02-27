@@ -2,3 +2,4 @@
 *.lib
 /lib
 /node_modules
+*.log

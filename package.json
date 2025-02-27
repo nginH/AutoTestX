@@ -20,7 +20,13 @@
   "homepage": "https://github.com/nginH/AutoTestX#readme",
   "dependencies": {
     "@google/generative-ai": "^0.22.0",
+    "@types/circular-json": "^0.4.0",
+    "@types/xml2js": "^0.4.14",
+    "@types/xmldom": "^0.1.34",
+    "circular-json": "^0.5.9",
     "dotenv": "^16.4.7",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "xml2js": "^0.6.2",
+    "xmldom": "^0.6.0"
   }
 }
