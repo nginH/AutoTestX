@@ -1,0 +1,26 @@
+{
+  "name": "autotestx",
+  "version": "1.0.0",
+  "description": "automated testing tool for all codebase",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsc && node lib/index.js",
+    "watch": "tsc -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nginH/AutoTestX.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nginH/AutoTestX/issues"
+  },
+  "homepage": "https://github.com/nginH/AutoTestX#readme",
+  "dependencies": {
+    "@google/generative-ai": "^0.22.0",
+    "dotenv": "^16.4.7",
+    "winston": "^3.17.0"
+  }
+}
