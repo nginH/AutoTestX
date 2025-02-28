@@ -4,6 +4,9 @@ import { XMLService } from "./llm/parser/xml";
 import { PromptService } from "./prompt";
 import { ReActAgent } from "./service/llm";
 
+const xmlService = new XMLService();
+const promptService = new PromptService();
+
 LLMFactory.getInstance(
     'google',
     {
@@ -32,14 +35,7 @@ LLMFactory.getInstance(
     console.error('Failed to initialize LLM service. Errors:', error);
 });
 
-const xmlService = new XMLService();
-const promptService = new PromptService();
 
-
-
-
-
-// // Example usage
 // const llmService = new LLMService(process.env.GOOGLE_GENERATIVE_AI_API_KEY as string);
 
 // async function fixCodeWithReAct() {
