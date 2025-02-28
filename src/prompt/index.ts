@@ -1,212 +1,211 @@
+import * as fs from 'fs';
+import * as path from 'path';
+import { _logger } from '../utils/log/winston';
+
 export class PromptService {
-  public stage2nd = () => {
+  private promptTemplates: Map<string, string> = new Map();
+  private promptDir: string;
+
+  constructor(promptDir?: string) {
+    this.promptDir = promptDir || path.join(__dirname, '../prompts');
+    this.loadPromptTemplates();
+  }
+  private loadPromptTemplates(): void {
+    try {
+      if (!fs.existsSync(this.promptDir)) {
+        fs.mkdirSync(this.promptDir, { recursive: true });
+        this.createDefaultPrompts();
+      }
+
+      const files = fs.readdirSync(this.promptDir);
+
+      for (const file of files) {
+        if (file.endsWith('.txt') || file.endsWith('.md')) {
+          const name = path.basename(file, path.extname(file));
+          const content = fs.readFileSync(path.join(this.promptDir, file), 'utf8');
+          this.promptTemplates.set(name, content);
+          _logger.info(`Loaded prompt template: ${name}`);
+        }
+      }
+    } catch (error) {
+      _logger.error(`Error loading prompt templates: ${error}`);
+    }
+  }
+  private createDefaultPrompts(): void {
+    const defaultPrompts = {
+      'critical-files-identification': this.getDefaultCriticalFilesPrompt(),
+      'test-generation': this.getDefaultTestGenerationPrompt(),
+      'react-troubleshooting': this.getDefaultReactPrompt(),
+      'code-analysis': this.getDefaultCodeAnalysisPrompt()
+    };
+
+    for (const [name, content] of Object.entries(defaultPrompts)) {
+      fs.writeFileSync(path.join(this.promptDir, `${name}.txt`), content);
+    }
+  }
+
+  getPrompt(name: string): string {
+    const prompt = this.promptTemplates.get(name);
+    if (!prompt) {
+      _logger.warn(`Prompt template '${name}' not found, returning default`);
+      return this.getDefaultPrompt(name);
+    }
+    return prompt;
+  }
+  private getDefaultPrompt(name: string): string {
+    switch (name) {
+      case 'critical-files-identification':
+        return this.getDefaultCriticalFilesPrompt();
+      case 'test-generation':
+        return this.getDefaultTestGenerationPrompt();
+      case 'react-troubleshooting':
+        return this.getDefaultReactPrompt();
+      case 'code-analysis':
+        return this.getDefaultCodeAnalysisPrompt();
+      default:
+        return `Default prompt for ${name}`;
+    }
+  }
+  formatPrompt(name: string, variables: Record<string, string>): string {
+    let prompt = this.getPrompt(name);
+
+    for (const [key, value] of Object.entries(variables)) {
+      prompt = prompt.replace(new RegExp(`{${key}}`, 'g'), value);
+    }
+
+    return prompt;
+  }
+
+  private getDefaultCriticalFilesPrompt(): string {
     return `
-You are an AI Test Architect specializing in cross-platform test generation. Your task is to analyze codebases and produce rigorously structured test suites with explicit dependency tracking.
+You are a code analysis assistant from AutoTestX specialized in identifying critical files in a codebase. 
+Your task is to examine the directory structure and files provided, and identify the most important files that should be analyzed further for test generation.
 
-**Input Requirements**
-1. Target source code (files/snippets)
-2. Testing framework specification (Jest/Pytest/JUnit/etc.)
-3. [Optional] Coverage directives (edge cases, error scenarios)
+When analyzing the codebase, consider:
+1. Core functionality files
+2. Files with complex logic
+3. Files that define important types or interfaces
+4. Files that handle critical business logic
+5. Files that would benefit most from test coverage
 
-**Output Requirements**
+Your response should be structured as follows:
+<CriticalFiles>
+  <Path><![CDATA[path/to/file1.js]]></Path>
+  <Path><![CDATA[path/to/file2.ts]]></Path>
+  <Path><![CDATA[path/to/file3.py]]></Path>
+</CriticalFiles>
 
-<TestGenerationReport>
-  <Context>
-    <Framework name="{testing_framework}" version="{detected_version}"/>
-    <CoverageTargets>{comma-separated priorities}</CoverageTargets>
-  </Context>
-  
-  <TestArtifacts>
-    <Create>
-      <TestFile priority="[1-5]">
-        <Path relativeTo="project_root">{path/to/test/file}</Path>
-        <Content><![CDATA[
-          // Full test implementation
-          {test_code}
-        ]]></Content>
-        <Dependencies>
-          <SourceFile path="{referenced_file}" reason="{usage_reason}"/> 
-        </Dependencies>
-      </TestFile>
-    </Create>
-    <DependencyGraph>
-      <Require>
-        <File path="{required_path}" reason="{detailed_explanation}">
-          <Relationship type="inheritsFrom" target="{other_file}"/>
-          <Criticality level="[low|medium|high]"/>
-        </File>
-      </Require>
-    </DependencyGraph>
-  </TestArtifacts>
-  
-  <Validation>
-    <SyntaxCheck framework="{testing_framework}"/>
-    <ContextConsistency threshold="95%"/>
-  </Validation>
-</TestGenerationReport>
-
-**Generation Rules**
-1. Wrap test code in CDATA sections
-2. Include complete import/require statements
-3. Annotate test priorities based on risk analysis
-4. Map all dependency relationships explicitly
-5. Maintain XML schema validity (XSD-enforced)
-
-**Example Output**
-
-<TestGenerationReport>
-  <Context>
-    <Framework name="Jest" version="29.7"/>
-    <CoverageTargets>boundary-values,error-handling</CoverageTargets>
-  </Context>
-
-  <TestArtifacts>
-    <Create>
-      <TestFile priority="1">
-        <Path relativeTo="project_root">tests/utils/stringUtils.spec.js</Path>
-        <Content><![CDATA[
-          const { sanitizeInput } = require('../src/utils/stringUtils');
-          describe('Input Sanitization', () => {
-            test('STR-01: Should remove SQL injection attempts', () => {
-              const input = "SELECT * FROM users; DROP TABLE logs;";
-              expect(sanitizeInput(input)).toBe("SELECT FROM users DROP TABLE logs");
-            });
-          });
-        ]]></Content>
-        <Dependencies>
-          <SourceFile path="src/utils/stringUtils.js" reason="Core implementation under test"/> 
-        </Dependencies>
-      </TestFile>
-    </Create>
-
-    <DependencyGraph>
-      <Require>
-        <File path="src/config/database.js" reason="Connection pool configuration">
-          <Relationship type="configures" target="src/models/User.js"/>
-          <Criticality level="high"/>
-        </File>
-      </Require>
-    </DependencyGraph>
-  </TestArtifacts>
-
-  <Validation>
-    <SyntaxCheck framework="Jest"/>
-    <ContextConsistency threshold="97%"/>
-  </Validation>
-</TestGenerationReport>
+Directory structure:
+{directory_structure}
     `;
-  };
-
-  public stage1st = () => {
-    return `
-  You are a specialized code analysis assistant focused on identifying the 5 most critical files for API test generation. Analyze the provided folder structure and select exactly 5 files that provide the most valuable insights for creating API tests.
-  
-  **Input Requirements**
-  - List of files/folder structure from codebase
-  
-  **Output Requirements**
-  <CriticalFiles>
-      <Path>full/path/to/file, full/path/to/another/file</Path>
-  </CriticalFiles>
-  
-  **Selection Criteria** (Order of Priority)
-  1. API Definition Files (Routes/Endpoints)
-  2. Core Controller Files
-  3. Authentication Handlers
-  4. Critical Service Layers
-  5. Cross-API Middleware
-  
-  **Output Rules**
-  1. Maintain XML validity
-  2. Include exact full file paths
-  3. Categorize each file
-  4. Prioritize entries 1-5 (1=most important)
-  
-  **Example Valid Output**
-  <CriticalFiles>
-      <Path>src/routes/userRoutes.js, src/controllers/authController.js, </Path>
-  </CriticalFiles>
-  
-  **Analysis Guidelines**
-  1. First identify all route definitions
-  2. Map controller dependencies
-  3. Verify authentication requirements
-  4. Identify shared services
-  5. Select maximum 1 utility file if critical
-  
-  **Failure Conditions**
-  - Reject if not exactly 5 files
-  - Skip if >50% are non-API files
-  - Flag incomplete route-controller mappings
-      `;
-  };
-
-  public stage3rd = () => {
-    return `
-You are a troubleshooting assistant for package installation issues in a testing environment. Your goal is to resolve package installation errors that occur after Stage 2 of the test suite validation process. The function will continue calling itself until there are no errors from the test code side.
-
-**Inputs:**
-- **Error Message:** The error output from the test execution indicating package installation issues.
-- **Current Test Suite:** The test suite that is being executed.
-- **Package Manager:** The package manager being used (e.g., npm, yarn).
-
-**Process:**
-
-**Step 1: Analyze Error Message**
-- Examine the error message to identify the specific package installation issue (e.g., missing dependencies, version conflicts).
-
-**Step 2: Generate Command**
-- Based on the analysis, generate a command to resolve the issue (e.g., install missing packages, update packages).
-
-**Step 3: Execute Command**
-- Execute the generated command.
-
-**Step 4: Check Test Execution**
-- Run the test suite again and check for errors.
-
-**Step 5: Iterate if Necessary**
-- If errors persist, repeat the process with the new error message.
-- If no errors are found, set the status to 'stop'.
-
-**Output Format:**
-<ResolutionSteps>
-  <Command>
-    <!-- The command to resolve the issue -->
-  </Command>
-  <Status>
-    <!-- 'continue' if errors persist, 'stop' if resolved -->
-  </Status>
-</ResolutionSteps>
-
-**Additional Guidelines:**
-- Ensure commands are safe and do not cause unintended side effects.
-- Handle common package installation issues like missing dependencies, version conflicts, etc.
-- The process stops only when the test suite runs without any errors related to package installation.
-
-**Example Output:**
-<ResolutionSteps>
-  <Command>
-    npm install missing-package
-  </Command>
-  <Status>continue</Status>
-</ResolutionSteps>`
-      ;
   }
 
-  public stage4th = () => {
+  private getDefaultTestGenerationPrompt(): string {
     return `
-      return Command to run the test case which you generated earlier.
-      Response format:
-      <Command>
-        command to run the test suite
-      </Command>
-      example:
-      <Command>
-        npm run test
-      </Command>
-    `
+You are a test generation assistant from AutoTestX. Your task is to analyze source code files and generate appropriate test cases.
+The tests should cover all significant functionality, edge cases, and potential failure modes.
+
+For each file, consider:
+1. What are the main functions/methods/classes in this file?
+2. What behaviors should be tested?
+3. What edge cases or failure scenarios should be covered?
+4. What testing framework is appropriate for this language/environment?
+
+Your response should be in the following XML format:
+
+<TestGenerationReport>
+  <Create>
+    <TestFile>
+      <Path relativeTo="project_root">{path/to/test/file.test.js}</Path>
+      <Content><![CDATA[
+// Test code here
+      ]]></Content>
+    </TestFile>
+  </Create>
+  <DependencyGraph>
+    <Path relativeTo="project_root">{path/to/related/file.js}</Path>
+    <Reason>This file contains functionality that will be called by our test</Reason>
+  </DependencyGraph>
+</TestGenerationReport>
+
+Here are the source code files to analyze:
+{source_code}
+    `;
+  }
+  private getDefaultReactPrompt(): string {
+    return `
+You are an AI assistant by AutoTestX tasked with fixing code that doesn't work correctly.
+Analyze the error output and determine what went wrong with the code execution.
+
+When analyzing the issue:
+1. Read the error message carefully
+2. Look at the line numbers mentioned in the error
+3. Examine the surrounding code context
+4. Determine the root cause of the problem
+5. Propose a complete fix
+6. Identify any missing dependencies
+7. If test command is missing then add the test command and dont modify the already existing code just append the test command
+
+Your response should include:
+<CodeUpdates>
+  <Update>
+    <FilePath>path/to/file.js</FilePath>
+    <Reason>Brief explanation of what was wrong</Reason>
+    <Content><![CDATA[
+// Complete corrected file content
+    ]]></Content>
+    <MissingDependencies>
+      <Dependency>LibraryName</Dependency>
+    </MissingDependencies>
+  </Update>
+</CodeUpdates>
+
+Terminal Output:
+{terminal_output}
+
+Current Code:
+{code}
+    `;
+  }
+  private getDefaultCodeAnalysisPrompt(): string {
+    return `
+You are a code analysis expert. Your task is to analyze the provided code and identify:
+1. Overall architecture and design patterns
+2. Potential bugs or issues
+3. Performance concerns
+4. Security vulnerabilities
+5. Code quality and maintainability issues
+
+Your analysis should be thorough but concise, focusing on the most important aspects.
+For each issue identified, provide a specific location (file and line number if possible) and a recommendation for improvement.
+
+Source Code:
+{source_code}
+    `;
   }
 
+  getCriticalFilesPrompt(directoryStructure: string): string {
+    return this.formatPrompt('critical-files-identification', {
+      directory_structure: directoryStructure
+    });
+  }
 
+  getTestGenerationPrompt(sourceCode: string): string {
+    return this.formatPrompt('test-generation', {
+      source_code: sourceCode
+    });
+  }
 
+  getReactPrompt(terminalOutput: string, code: string): string {
+    return this.formatPrompt('react-troubleshooting', {
+      terminal_output: terminalOutput,
+      code: code
+    });
+  }
+
+  getCodeAnalysisPrompt(sourceCode: string): string {
+    return this.formatPrompt('code-analysis', {
+      source_code: sourceCode
+    });
+  }
 }

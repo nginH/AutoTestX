@@ -45,3 +45,37 @@ export interface CriticalFile {
     category: 'API Definition' | 'Controller' | 'Auth' | 'Service' | 'Validation';
     priority: number;
 }
+
+
+export interface ModelInfo {
+    name: string;
+    label: string;
+    provider: string;
+    maxTokenAllowed: number;
+}
+
+
+export interface ReActResult {
+    success: boolean;
+    finalCode?: string;
+    actions: string[];
+    errors: string[];
+}
+
+/**
+ * Code update interface for ReAct
+ */
+export interface CodeUpdate {
+    filePath: string;
+    content: string;
+    reason: string;
+    missingPackage: string;
+}
+
+/**
+ * ReAct Agent options
+ */
+export interface ReActAgentOptions {
+    maxIterations?: number;
+    debug?: boolean;
+}

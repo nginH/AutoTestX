@@ -9,7 +9,7 @@ const customFormat = winston.format.printf(({ level, message, timestamp }) => {
 });
 
 export const _logger = winston.createLogger({
-    level: process.env.LOG_LEVEL || 'error',
+    level: 'info',
     format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.printf(({ timestamp, level, message }) => {

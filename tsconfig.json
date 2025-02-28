@@ -7,9 +7,10 @@
     "sourceMap": true,
     "strict": true,
     "target": "ES2022",
+    "moduleResolution": "node",
     "skipLibCheck": true,
     "esModuleInterop": true
   },
   "compileOnSave": true,
-  "include": ["src"]
+  "include": ["src", "index.js"]
 }
