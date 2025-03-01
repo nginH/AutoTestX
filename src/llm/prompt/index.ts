@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { _logger } from '../utils/log/winston';
+import { _logger } from '../../utils/log/winston';
 
 export class PromptService {
   private promptTemplates: Map<string, string> = new Map();

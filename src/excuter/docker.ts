@@ -1,6 +1,6 @@
 import pino from "pino";
 import { exec } from "child_process";
-import Storage from "../storage/storage.file";
+import Storage from "../utils/storage/storage.file";
 
 const logger = pino({
     transport: {
