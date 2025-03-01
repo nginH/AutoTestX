@@ -80,7 +80,7 @@ export class FileService {
             return await readFile(filePath, 'utf8');
         } catch (error) {
             _logger.error(`Error reading file ${filePath}: ${error}`);
-            throw error;
+            return `error reading file content ${filePath}: ${error}`;
         }
     }
     async ensureDirectory(dirPath: string): Promise<void> {

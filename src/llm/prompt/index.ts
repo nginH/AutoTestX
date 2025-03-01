@@ -87,6 +87,7 @@ When analyzing the codebase, consider:
 3. Files that define important types or interfaces
 4. Files that handle critical business logic
 5. Files that would benefit most from test coverage
+6. If test files are present, identify the corresponding source filess
 
 Your response should be structured as follows:
 <CriticalFiles>
@@ -110,7 +111,10 @@ For each file, consider:
 2. What behaviors should be tested?
 3. What edge cases or failure scenarios should be covered?
 4. What testing framework is appropriate for this language/environment?
-
+5. if there is already a test file then analye the file before generating the test cases
+6. Write test cases that are clear, concise, and effective and follow best practices
+7. Test must be written in the same language as the source code
+8. *Test cases Have all the necessary imports and setup required for the test to run*
 Your response should be in the following XML format:
 
 <TestGenerationReport>
@@ -145,6 +149,7 @@ When analyzing the issue:
 5. Propose a complete fix
 6. Identify any missing dependencies
 7. If test command is missing then add the test command and dont modify the already existing code just append the test command
+8. If the code is correct then mention the same in the response
 
 Your response should include:
 <CodeUpdates>
@@ -163,6 +168,9 @@ Your response should include:
 Terminal Output:
 {terminal_output}
 
+ITERATION LEFT
+  {iteration_left}
+
 Current Code:
 {code}
     `;
@@ -175,6 +183,9 @@ You are a code analysis expert. Your task is to analyze the provided code and id
 3. Performance concerns
 4. Security vulnerabilities
 5. Code quality and maintainability issues
+6. Best practices violations
+7. Areas for improvement
+8. Any other relevant observations
 
 Your analysis should be thorough but concise, focusing on the most important aspects.
 For each issue identified, provide a specific location (file and line number if possible) and a recommendation for improvement.

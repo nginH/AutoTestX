@@ -11,10 +11,7 @@ export class PackageManager {
         timeout = 5000,
         debug = false,
     ) {
-        this.runner = new Runner(
-            debug,
-            timeout
-        );
+        this.runner = new Runner();
     }
     public async installMissingPackages(
         projectDir: string,
@@ -22,9 +19,9 @@ export class PackageManager {
     ): Promise<void> {
         try {
             const packageManager = await this.determinePackageManager(projectDir);
-            const installCommand = `${packageManager} install ${missingPackages.join(' ')}`;
+            const installCommand = `${packageManager} install ${missingPackages.map(pkg => pkg.trim()).join(' ')}`;
+            _logger.info(`Installing missing packages: ${installCommand}`);
             const installResult = await this.runner.executeCommand(installCommand, projectDir);
-
             if (!installResult.success) {
                 throw new Error(`Failed to install missing packages: ${installResult.output}`);
             }

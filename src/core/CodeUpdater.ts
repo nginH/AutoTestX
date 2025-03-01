@@ -53,13 +53,8 @@ export class CodeUpdater {
                 return `File (IMPL): ${relativePath}\n\n${file.content}\n\n`;
             })
         ];
-
         const sourceCode = fileContents.join('---\n\n');
-
-        // Get ReAct prompt
         const prompt = this.promptService.getReactPrompt(testOutput, sourceCode);
-
-        // Generate content using LLM
 
         const response = await this.llmService.generateContent(prompt);
 

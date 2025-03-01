@@ -44,8 +44,6 @@ export class ReActAgent {
             this.promptService
         );
         this.runner = new Runner(
-            this.config.debug ?? false,
-            this.config.TerminalTimeOut ?? 5000
         );
         this.testExecution = new TestExecuter(
             this.runner,
@@ -53,7 +51,7 @@ export class ReActAgent {
             this.xmlService,
             this.llmService,
             this.promptService,
-            this.fileAnalyser.extractImplementationFiles,
+            this.fileAnalyser,
             this.config.maxIterations ?? 3
         );
     }
@@ -68,7 +66,10 @@ export class ReActAgent {
         try {
             const criticalFiles = await this.fileAnalyser.identifyCriticalFiles(projectDir);
             result.actions.push(`Identified ${criticalFiles.length} critical files`);
-
+            _logger.info("listed critical files: ")
+            for (let i = 0; i < criticalFiles.length; i++) {
+                _logger.info(criticalFiles[i])
+            }
             const testFiles = await this.generateTestFiles(projectDir, criticalFiles);
             result.actions.push(`Generated ${testFiles.length} test files`);
 

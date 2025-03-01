@@ -58,6 +58,10 @@ export class TestExecuter {
 
             // Step 1: Run tests
             const testCommand = await this.determineTestCommand(projectDir);
+            if (testCommand == '') {
+                result.errors.push('Failed to determine test command');
+                break;
+            }
             const testResult = await this.runner.executeCommand(testCommand, projectDir);
 
             // Check if tests are passing
@@ -100,10 +104,10 @@ export class TestExecuter {
         return result;
     }
 
-
     private async determineTestCommand(projectDir: string): Promise<string> {
         try {
             const packageJsonPath = path.join(projectDir, 'package.json');
+            const pythonFiles = ['requirements.txt', 'setup.py', 'Pipfile'];
 
             try {
                 const packageJson = JSON.parse(await this.fileService.readFile(packageJsonPath));
@@ -112,14 +116,17 @@ export class TestExecuter {
                 }
             } catch (error) {
             }
+
             const files = await this.fileService.readDirectoryRecursively(projectDir);
 
             if (files.some((file: string | string[]) => file.includes('jest.config'))) {
                 return 'npx jest';
             }
-
             if (files.some((file: string | string[]) => file.includes('mocha'))) {
                 return 'npx mocha';
+            }
+            if (files.some((file: string | string[]) => pythonFiles.includes(path.basename(file as string)))) {
+                return 'pytest';
             }
             return 'npm test';
         } catch (error) {
